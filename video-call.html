@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VideoCall - ZEGOCLOUD</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            /* vh ka fallback */
+            min-height: 100dvh;
+            /* modern browsers handle taskbar */
+            overflow: hidden;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            min-height: 0;
+            /* <- important to stop overflow */
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 28px;
+            color: #4a8cff;
+        }
+
+        .logo h1 {
+            font-weight: 700;
+            font-size: 24px;
+            background: linear-gradient(45deg, #4a8cff, #9c4dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            gap: 20px;
+            min-height: 0;
+            /* <- fixes scroll/overflow issue */
+        }
+
+        .video-container {
+            flex: 3;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            overflow: auto;
+            min-height: 0;
+            /* <- allow proper shrinking */
+        }
+
+        .participants {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .participants h2 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        #participantList {
+            list-style: none;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #participantList li {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #participantList li i {
+            color: #4a8cff;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f);
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 50px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(45deg, #4a8cff, #9c4dff);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .notification i {
+            color: #4a8cff;
+            font-size: 20px;
+        }
+
+        @media (max-width: 968px) {
+            .main-content {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo"><i class="fas fa-video"></i>
+                <h1>VideoCall</h1>
+            </div>
+            <div class="call-info"><span id="meetingInfo">Meeting ID: -</span></div>
+        </header>
+
+        <div class="main-content">
+            <div class="video-container"></div>
+            <div class="participants">
+                <h2><i class="fas fa-users"></i> Participants</h2>
+                <ul id="participantList">
+                    <li>Waiting for users...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="joinModal">
+        <div class="modal-content">
+            <h2>Join Video Meeting</h2>
+            <div class="input-group"><input type="text" placeholder="Enter Meeting ID" id="meetingId"></div>
+            <div class="input-group"><input type="text" placeholder="Enter Your Name" id="userName"></div>
+            <button class="btn" id="joinBtn">Join Meeting</button>
+            <button class="btn btn-secondary" id="createBtn">Create New Meeting</button>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <i class="fas fa-info-circle"></i><span>Connecting to the meeting...</span>
+    </div>
+
+    <!-- ZegoUIKit -->
+   <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
+    <script>
+        const appID = 2013451028;
+        const serverSecret = "2b7ae6e2a00da566143cebe8567e71b3";
+
+        const joinModal = document.getElementById('joinModal');
+        const notification = document.getElementById('notification');
+        const joinBtn = document.getElementById('joinBtn');
+        const createBtn = document.getElementById('createBtn');
+        const meetingIdInput = document.getElementById('meetingId');
+        const userNameInput = document.getElementById('userName');
+        const meetingInfo = document.getElementById('meetingInfo');
+        let zp;
+
+        window.onload = () => {
+            meetingIdInput.value = Math.floor(100000000 + Math.random() * 900000000);
+            userNameInput.value = "User" + Math.floor(Math.random() * 1000);
+            setTimeout(() => { notification.style.display = 'none'; }, 1500);
+        };
+
+        joinBtn.onclick = startMeeting;
+        createBtn.onclick = () => {
+            meetingIdInput.value = Math.floor(100000000 + Math.random() * 900000000);
+            startMeeting();
+        };
+
+        function startMeeting() {
+            joinModal.style.display = 'none';
+            notification.style.display = 'flex';
+
+            const roomID = meetingIdInput.value;
+            const userName = userNameInput.value || "Guest" + Math.floor(Math.random() * 1000);
+            const userID = String(new Date().getTime());
+
+            meetingInfo.textContent = "Meeting ID: " + roomID;
+
+            const token = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, userID, userName);
+            zp = ZegoUIKitPrebuilt.create(token);
+
+            setTimeout(() => {
+                notification.style.display = 'none';
+                zp.joinRoom({
+                    container: document.querySelector(".video-container"),
+                    scenario: { mode: ZegoUIKitPrebuilt.VideoConference },
+                    showPreJoinView: false,
+                    turnOnCameraWhenJoining: true,
+                    turnOnMicrophoneWhenJoining: true,
+                    showRoomDetailsButton: false,
+                    showTextChat: false,
+                });
+
+                // --- Live Participants List ---
+                const participantList = document.getElementById("participantList");
+
+                function updateParticipants() {
+                    const users = zp.getAllUsers();
+                    if (users.length === 0) {
+                        participantList.innerHTML = "<li>Waiting for users...</li>";
+                    } else {
+                        participantList.innerHTML = users.map(
+                            u => `<li><i class="fas fa-user"></i> ${u.userName}</li>`
+                        ).join("");
+                    }
+                }
+                updateParticipants();
+                zp.on("userJoin", updateParticipants);
+                zp.on("userLeave", updateParticipants);
+            }, 1500);
+        }
+    </script>
+</body>
+
+</html>
